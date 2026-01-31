@@ -8,6 +8,7 @@ import { Cloud } from 'lucide-react';
 const Register = () => {
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const passwordRules = {
     length: formData.password.length >= 8,
@@ -25,6 +26,7 @@ const Register = () => {
       await registerApi(formData);
       toast.success('Activation link sent! Please check your email.');
       setFormData({ firstName: '', lastName: '', email: '', password: '' });
+      setEmailSent(true);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {
@@ -121,6 +123,12 @@ const Register = () => {
             </button>
           </form>
           
+          {emailSent && (
+            <div className="mt-4 text-center text-sm text-gray-500">
+              Didn’t receive the email? Please check your <strong>Spam / Junk</strong> folder. It may take a few minutes to arrive.
+            </div>
+          )}
+
           <div className="mt-8 text-center">
             <span className="text-gray-500 text-sm">Already have an account? </span>
             <Link to="/login" className="text-blue-600 hover:text-indigo-600 font-bold text-sm transition-colors">Login here</Link>

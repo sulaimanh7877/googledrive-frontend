@@ -7,6 +7,7 @@ import { KeyRound, ArrowLeft } from 'lucide-react';
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -17,6 +18,7 @@ const ForgotPassword = () => {
       await forgotPassword(email);
       toast.success('If an account exists, a reset link has been sent.');
       setEmail('');
+      setEmailSent(true);
     } catch (error) {
       toast.error('Request failed. Please try again.');
     } finally {
@@ -64,6 +66,12 @@ const ForgotPassword = () => {
               {isLoading ? 'Sending Link...' : 'Send Reset Link'}
             </button>
           </form>
+
+          {emailSent && (
+            <div className="mt-4 text-center text-sm text-gray-500">
+              Didn’t receive the email? Please check your <strong>Spam / Junk</strong> folder. It may take a few minutes to arrive.
+            </div>
+          )}
 
           <div className="mt-8 text-center">
             <Link to="/login" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">

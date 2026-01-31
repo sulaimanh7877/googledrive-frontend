@@ -39,6 +39,7 @@ const Register = () => {
             </div>
           </div>
 
+          <p className="text-center text-sm font-semibold text-blue-600 tracking-wide mb-1">Cloud Web Drive</p>
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">Create Account</h2>
           <p className="text-center text-gray-500 mb-8 text-sm">Start your secure cloud journey</p>
 

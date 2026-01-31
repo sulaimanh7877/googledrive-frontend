@@ -60,6 +60,7 @@ const ResetPassword = () => {
              </div>
           </div>
 
+          <p className="text-center text-sm font-semibold text-blue-600 tracking-wide mb-1">Cloud Web Drive</p>
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">Set New Password</h2>
           <p className="text-center text-gray-500 mb-4 text-sm">
             Reset password for <strong>{email}</strong>

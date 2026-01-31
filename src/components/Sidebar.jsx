@@ -1,4 +1,4 @@
-import { Home, HardDrive, Users, Clock, Star, Trash2, Cloud, Plus } from 'lucide-react';
+import { Home, HardDrive, Users, Clock, Star, Trash2, Cloud, Plus, Github, Linkedin } from 'lucide-react';
 import UploadZone from './UploadZone';
 import { formatBytes } from '../utils/format.util';
 
@@ -35,7 +35,7 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick 
              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                <Cloud className="w-5 h-5 text-white" />
              </div>
-             <span className="text-xl font-bold text-gray-800">CloudDrive</span>
+             <span className="text-lg font-bold tracking-wide text-gray-800">Cloud Web Drive</span>
           </div>
 
           {/* Main Action */}
@@ -103,6 +103,10 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick 
 
           {/* Storage Details */}
           <div className="mt-auto pt-6 border-t">
+            <div className="mb-4 text-xs text-gray-400 leading-relaxed">
+              <p className="font-medium text-gray-500">Prototype Version</p>
+              <p>Storage limits are intentionally kept low to prevent abuse.</p>
+            </div>
             <div className="flex items-center gap-2 text-gray-700 mb-2">
               <Cloud className="w-5 h-5" />
               <span className="font-medium">Storage</span>
@@ -118,7 +122,27 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick 
                 ? `${formatBytes(usedStorage)} of ${formatBytes(totalStorage)} used`
                 : 'Loading storage info...'}
             </p>
-            
+
+            <div className="mt-4 flex items-center gap-4">
+              <a
+                href="https://github.com/YOUR_GITHUB_USERNAME"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                className="text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                <Github className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/YOUR_LINKEDIN_USERNAME"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                className="text-gray-500 hover:text-blue-700 transition-colors"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+            </div>
           </div>
         </div>
       </aside>

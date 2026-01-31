@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/token.util';
 import { toast } from 'react-toastify';
+import appConfig from '../config/appConfig';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: appConfig.API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

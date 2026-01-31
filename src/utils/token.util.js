@@ -9,5 +9,11 @@ export const getToken = () => {
 };
 
 export const removeToken = () => {
+  // Remove auth token cookie
   document.cookie = 'token=; path=/; max-age=0;';
+
+  // Force navigation to login on token expiry
+  if (window.location.pathname !== '/login') {
+    window.location.replace('/login');
+  }
 };

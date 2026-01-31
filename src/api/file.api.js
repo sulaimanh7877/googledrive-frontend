@@ -2,7 +2,7 @@ import api from './axios';
 import axios from 'axios';
 
 export const getFiles = (folderId) => api.get('/files', { params: { folderId } });
-export const getUploadUrl = (fileName, fileType, size) => api.post('/files/upload-url', { fileName, fileType, size });
+export const getUploadUrl = (fileName, mimeType, size, folderId = null) => api.post('/files/upload-url', { fileName, mimeType, size, folderId });
 export const saveFileMetadata = (data) => api.post('/files', data);
 export const deleteFile = (fileId) => api.delete(`/files/${fileId}`);
 export const getDownloadUrl = (fileId) => api.get(`/files/${fileId}/download`);

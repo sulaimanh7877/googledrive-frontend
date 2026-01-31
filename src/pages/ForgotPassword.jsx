@@ -23,27 +23,31 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+         <div className="absolute top-[10%] left-[30%] w-[40%] h-[40%] rounded-full bg-indigo-50/50 blur-3xl"></div>
+      </div>
+
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden relative z-10 border border-white/50">
+        <div className="p-8 md:p-10">
           <div className="flex justify-center mb-6">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <KeyRound className="w-6 h-6 text-blue-600" />
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+              <KeyRound className="w-8 h-8 text-blue-600" />
             </div>
           </div>
           
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Forgot Password?</h2>
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">Forgot Password?</h2>
           <p className="text-center text-gray-500 mb-8 text-sm">
             Enter your email address and we'll send you a link to reset your password.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Email Address</label>
               <input 
                 type="email" 
                 required 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -53,14 +57,14 @@ const ForgotPassword = () => {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md transition-all disabled:opacity-70"
+              className="w-full py-3.5 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold shadow-lg shadow-gray-400/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Sending Link...' : 'Send Reset Link'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <Link to="/login" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <div className="mt-8 text-center">
+            <Link to="/login" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Login
             </Link>

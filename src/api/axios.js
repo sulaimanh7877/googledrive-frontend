@@ -25,9 +25,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       removeToken();
-      toast.error('Session expired. Please login again.');
-      // Simple redirect to login
+      // Prevent multiple toasts or redirects
       if (window.location.pathname !== '/login') {
+        toast.error('Session expired. Please login again.');
         window.location.href = '/login';
       }
     }

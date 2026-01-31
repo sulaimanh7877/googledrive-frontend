@@ -17,19 +17,41 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentFolder, setCurrentFolder] = useState(null);
-  const [folderHistory, setFolderHistory] = useState([]);
+  const [breadcrumbPath, setBreadcrumbPath] = useState([{ id: null, name: 'My Drive' }]);
   const [contents, setContents] = useState({ files: [], folders: [] });
+  const [folderTree, setFolderTree] = useState([]);
   const [totalUsage, setTotalUsage] = useState(0);
+  const [storageLimit, setStorageLimit] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [viewMode, setViewMode] = useState('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const MAX_STORAGE = ((Number(import.meta.env.VITE_STORAGE_LIMIT_MB) || 250) * 1024 * 1024);
+  const remainingSpace = Math.max(0, MAX_STORAGE - totalUsage);
 
   const loadStorage = async () => {
     try {
       const { data } = await getStorageUsage();
       setTotalUsage(data.totalUsage);
+      setStorageLimit(typeof data.limit === 'number' && data.limit > 0 ? data.limit : 250 * 1024 * 1024);
     } catch (error) {
       console.error('Failed to load storage usage');
+    }
+  };
+
+  const loadRootFolders = async () => {
+    try {
+      const { data } = await getFolder('root');
+      const mapped = (data.subfolders || []).map(f => ({
+        id: f._id,
+        name: f.name,
+        children: [],
+        loaded: false
+      }));
+      setFolderTree(mapped);
+    } catch (e) {
+      console.error('Failed to load root folders');
     }
   };
 
@@ -56,6 +78,7 @@ const Dashboard = () => {
         setCurrentFolder({ ...data.folder, id: data.folder._id });
       } else {
         setCurrentFolder(null);
+        setBreadcrumbPath([{ id: null, name: 'My Drive' }]);
       }
       
       setContents({ files: mappedFiles, folders: mappedFolders });
@@ -68,21 +91,24 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadContent();
+    loadRootFolders();
   }, []);
 
   const handleNavigate = (folder) => {
-    setFolderHistory([...folderHistory, currentFolder]);
+    setBreadcrumbPath(prev => {
+      const index = prev.findIndex(c => c.id === folder.id);
+      if (index !== -1) {
+        return prev.slice(0, index + 1);
+      }
+      return [...prev, { id: folder.id, name: folder.name }];
+    });
     loadContent(folder.id);
   };
 
   const handleBreadcrumb = (index) => {
-    if (index === -1) {
-      setFolderHistory([]);
-      loadContent(null);
-    } else {
-      // This logic is slightly simplified; keeping it as requested in previous logic
-      loadContent(null);
-    }
+    const target = breadcrumbPath[index];
+    setBreadcrumbPath(breadcrumbPath.slice(0, index + 1));
+    loadContent(target.id);
   };
 
   const handleCreateFolder = async () => {
@@ -96,8 +122,8 @@ const Dashboard = () => {
         createFolderApi(newFolderName, currentFolder?.id),
         {
           pending: 'Creating folder...',
-          success: 'Folder created',
-          error: 'Failed to create folder'
+          success: `Folder "${newFolderName}" created`,
+          error: 'Failed to create folder. Name might be taken.'
         }
       );
       setNewFolderName('');
@@ -119,12 +145,12 @@ const Dashboard = () => {
 
     try {
       await deleteFile(file.id);
-      toast.success('File deleted');
+      toast.success(`File "${file.name}" deleted permanently`);
       loadStorage();
     } catch (err) {
       // Revert on failure
       setContents(prev => ({ ...prev, files: previousFiles }));
-      toast.error('Delete failed');
+      toast.error(`Failed to delete "${file.name}"`);
     }
   };
 
@@ -140,11 +166,12 @@ const Dashboard = () => {
 
     try {
       await deleteFolder(folder.id);
-      toast.success('Folder deleted');
+      toast.success(`Folder "${folder.name}" and its contents deleted`);
+      loadStorage();
     } catch (err) {
       // Revert on failure
       setContents(prev => ({ ...prev, folders: previousFolders }));
-      toast.error('Delete failed');
+      toast.error(`Failed to delete "${folder.name}"`);
     }
   };
 
@@ -172,15 +199,17 @@ const Dashboard = () => {
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         onCreateFolder={() => setIsModalOpen(true)}
+        folders={folderTree}
+        onFolderClick={handleNavigate}
         usedStorage={totalUsage}
-        totalStorage={300 * 1024 * 1024}
+        totalStorage={storageLimit}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <Header 
           onMenuClick={() => setSidebarOpen(true)}
-          userTitle={user?.firstName}
+          onSearch={(value) => setSearchQuery(value.toLowerCase())}
         />
 
         {/* Main Content Scrollable Area */}
@@ -190,17 +219,22 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-8 sticky top-0 bg-gray-50 z-10 py-2">
              <div className="flex items-center gap-2 text-xl text-gray-800 font-bold">
                <button 
-                 onClick={() => handleBreadcrumb(-1)} 
+                 onClick={() => handleBreadcrumb(0)} 
                  className="hover:text-blue-600 transition-colors px-2 py-1 -ml-2 rounded-lg hover:bg-gray-200"
                >
                   My Drive
                </button>
-               {currentFolder && (
-                 <>
+               {breadcrumbPath.slice(1).map((crumb, index) => (
+                 <div key={crumb.id || 'root'} className="flex items-center gap-2">
                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                   <span className="text-gray-900">{currentFolder.name}</span>
-                 </>
-               )}
+                   <button
+                     onClick={() => handleBreadcrumb(index + 1)}
+                     className="hover:text-blue-600 transition-colors"
+                   >
+                     {crumb.name}
+                   </button>
+                 </div>
+               ))}
              </div>
              <div className="flex items-center gap-2 bg-gray-200 p-1 rounded-lg">
                <button 
@@ -220,15 +254,22 @@ const Dashboard = () => {
 
           {/* Upload Area */}
           <div className="mb-8">
-             <UploadZone folderId={currentFolder?.id} onUploadSuccess={() => loadContent(currentFolder?.id)} />
+             <UploadZone 
+               folderId={currentFolder?.id} 
+               remainingSpace={remainingSpace}
+               onUploadSuccess={() => {
+                 loadContent(currentFolder?.id);
+                 loadStorage();
+               }} 
+             />
           </div>
 
           {/* Quick Access (Folders) */}
-          {contents.folders.length > 0 && (
+          {contents.folders.filter(f => f.name.toLowerCase().includes(searchQuery)).length > 0 && (
             <div className="mb-10">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Quick Access</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {contents.folders.map(folder => (
+                {contents.folders.filter(folder => folder.name.toLowerCase().includes(searchQuery)).map(folder => (
                   <FolderCard 
                     key={folder.id} 
                     folder={folder} 
@@ -245,13 +286,13 @@ const Dashboard = () => {
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">All Files</h3>
             {viewMode === 'list' ? (
               <FileList 
-                files={contents.files} 
+                files={contents.files.filter(file => file.name.toLowerCase().includes(searchQuery))} 
                 onDownload={handleDownload}
                 onDelete={handleDeleteFile}
               />
             ) : (
               <FileGrid 
-                files={contents.files} 
+                files={contents.files.filter(file => file.name.toLowerCase().includes(searchQuery))} 
                 onDownload={handleDownload}
                 onDelete={handleDeleteFile}
               />

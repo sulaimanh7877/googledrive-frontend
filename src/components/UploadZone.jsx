@@ -3,12 +3,35 @@ import { useDropzone } from 'react-dropzone';
 import { getUploadUrl, uploadToS3, saveFileMetadata } from '../api/file.api';
 import { toast } from 'react-toastify';
 import { UploadCloud } from 'lucide-react';
+import { formatBytes } from '../utils/format.util';
 
-const UploadZone = ({ folderId, onUploadSuccess }) => {
+const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
   const onDrop = useCallback(async (acceptedFiles) => {
+    // Client-side Validation
+    const validFiles = [];
+    let batchSize = 0;
+
+    for (const file of acceptedFiles) {
+      if (remainingSpace !== undefined && (file.size + batchSize) > remainingSpace) {
+        toast.error(
+          <div>
+            <strong>Skipped "{file.name}"</strong>
+            <div className="text-xs mt-1">
+              Exceeds remaining storage ({formatBytes(remainingSpace)}).
+            </div>
+          </div>
+        );
+        continue;
+      }
+      batchSize += file.size;
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
     const uploadFile = async (file) => {
       try {
-        // 1. Get Signed URL (Pass size for quota check)
+        // 1. Get Signed URL
         const response = await getUploadUrl(file.name, file.type, file.size);
         const { uploadUrl, signedUrl, url, s3Key, key } = response.data || {};
         const targetUrl = uploadUrl || signedUrl || url;
@@ -21,7 +44,6 @@ const UploadZone = ({ folderId, onUploadSuccess }) => {
         await uploadToS3(targetUrl, file, null, fileType);
 
         // 3. Save Metadata
-        // Ensure folderId is explicitly null if undefined (root)
         const metaData = {
           name: file.name,
           size: file.size,
@@ -35,22 +57,21 @@ const UploadZone = ({ folderId, onUploadSuccess }) => {
         return { success: true, name: file.name };
       } catch (error) {
         console.error('Upload failed:', error);
-        return { success: false, name: file.name, error };
+        throw error;
       }
     };
 
-    // Parallel uploads with toast promise
     await toast.promise(
-      Promise.all(acceptedFiles.map(uploadFile)),
+      Promise.all(validFiles.map(uploadFile)),
       {
-        pending: `Uploading ${acceptedFiles.length} file(s)...`,
-        success: 'Uploads completed!',
-        error: 'Some uploads failed'
+        pending: `Uploading ${validFiles.length} file(s)...`,
+        success: 'Files uploaded successfully',
+        error: 'One or more uploads failed'
       }
     );
 
     if (onUploadSuccess) onUploadSuccess();
-  }, [folderId, onUploadSuccess]);
+  }, [folderId, onUploadSuccess, remainingSpace]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 

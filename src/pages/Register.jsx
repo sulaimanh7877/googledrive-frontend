@@ -24,57 +24,67 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-8">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute bottom-0 right-0 w-[50%] h-[50%] rounded-full bg-blue-100/50 blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-[40%] h-[60%] rounded-full bg-indigo-100/50 blur-3xl"></div>
+      </div>
+
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden relative z-10 border border-white/50">
+        <div className="p-8 md:p-10">
           <div className="flex justify-center mb-8">
-            <div className="bg-blue-600 p-3 rounded-xl">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform">
               <Cloud className="w-8 h-8 text-white" />
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Create Account</h2>
-          <p className="text-center text-gray-500 mb-8">Start your secure cloud journey</p>
+          <h2 className="text-2xl font-bold text-center text-gray-900 mb-2 tracking-tight">Create Account</h2>
+          <p className="text-center text-gray-500 mb-8 text-sm">Start your secure cloud journey</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex gap-4">
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <div className="w-1/2 space-y-1.5">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">First Name</label>
                 <input 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                   required 
+                  placeholder="John"
                   value={formData.firstName} 
                   onChange={e => setFormData({...formData, firstName: e.target.value})} 
                 />
               </div>
-              <div className="w-1/2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <div className="w-1/2 space-y-1.5">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Last Name</label>
                 <input 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                   required 
+                  placeholder="Doe"
                   value={formData.lastName} 
                   onChange={e => setFormData({...formData, lastName: e.target.value})} 
                 />
               </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Email Address</label>
               <input 
                 type="email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required 
+                placeholder="john@example.com"
                 value={formData.email} 
                 onChange={e => setFormData({...formData, email: e.target.value})} 
               />
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
               <input 
                 type="password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required 
+                placeholder="Min. 8 characters"
                 value={formData.password} 
                 onChange={e => setFormData({...formData, password: e.target.value})} 
               />
@@ -83,15 +93,20 @@ const Register = () => {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all mt-4 disabled:opacity-70"
+              className="w-full py-3.5 px-4 mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  Creating Account...
+                </span>
+              ) : 'Sign Up'}
             </button>
           </form>
           
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <span className="text-gray-500 text-sm">Already have an account? </span>
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-bold text-sm">Login here</Link>
+            <Link to="/login" className="text-blue-600 hover:text-indigo-600 font-bold text-sm transition-colors">Login here</Link>
           </div>
         </div>
       </div>

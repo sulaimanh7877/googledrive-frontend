@@ -2,7 +2,7 @@ import { Home, HardDrive, Users, Clock, Star, Trash2, Cloud, Plus } from 'lucide
 import UploadZone from './UploadZone';
 import { formatBytes } from '../utils/format.util';
 
-const Sidebar = ({ isOpen, onClose, onCreateFolder, usedStorage = 0, totalStorage = 10737418240 }) => {
+const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick = () => {}, usedStorage = 0, totalStorage = 10737418240 }) => {
   const navItems = [
     { icon: Home, label: 'My Drive', active: true },
     // { icon: HardDrive, label: 'Computers' },
@@ -62,7 +62,44 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, usedStorage = 0, totalStorag
                 {item.label}
               </button>
             ))}
+
+            {/* Folders */}
+            <div className="mt-4">
+              <h4 className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Folders</h4>
+              {folders.length === 0 ? (
+                <p className="px-4 text-xs text-gray-400">No folders yet</p>
+              ) : (
+                <div className="space-y-1">
+                  {folders.map(folder => (
+                    <div key={folder.id}>
+                      <button
+                        onClick={() => onFolderClick(folder)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg truncate"
+                      >
+                        {folder.name}
+                      </button>
+                      {folder.children && folder.children.length > 0 && (
+                        <div className="ml-4 border-l border-gray-200">
+                          {folder.children.map(child => (
+                            <button
+                              key={child.id}
+                              onClick={() => onFolderClick(child)}
+                              className="w-full text-left px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg truncate"
+                            >
+                              {child.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </nav>
+
+          {/* Folders */}
+          
 
           {/* Storage Details */}
           <div className="mt-auto pt-6 border-t">
@@ -77,11 +114,11 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, usedStorage = 0, totalStorag
               />
             </div>
             <p className="text-xs text-gray-500">
-              {formatBytes(usedStorage)} of {formatBytes(totalStorage)} used
+              {totalStorage > 0
+                ? `${formatBytes(usedStorage)} of ${formatBytes(totalStorage)} used`
+                : 'Loading storage info...'}
             </p>
-            <button className="mt-3 text-sm text-blue-600 font-medium hover:underline">
-              Upgrade Storage ↗
-            </button>
+            
           </div>
         </div>
       </aside>

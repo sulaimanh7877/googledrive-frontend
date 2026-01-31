@@ -5,16 +5,28 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [token, setTokenState] = useState(getToken());
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (!stored) return null;
+      return JSON.parse(stored);
+    } catch (err) {
+      console.warn('Invalid user data in localStorage, clearing it');
+      localStorage.removeItem('user');
+      return null;
+    }
+  });
 
   const login = (newToken, userData) => {
     setToken(newToken);
     setTokenState(newToken);
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
     removeToken();
+    localStorage.removeItem('user');
     setTokenState(null);
     setUser(null);
   };

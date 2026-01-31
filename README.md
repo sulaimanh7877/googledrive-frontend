@@ -111,8 +111,8 @@ npm run preview
 
 ## Links
 
-- GitHub: https://github.com/YOUR_GITHUB_USERNAME
-- LinkedIn: https://www.linkedin.com/in/YOUR_LINKEDIN_USERNAME
+- GitHub: https://github.com/sulaimanh7877
+- LinkedIn: https://www.linkedin.com/in/sulaiman-h
 
 ---
 

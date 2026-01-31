@@ -125,7 +125,7 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick 
 
             <div className="mt-4 flex items-center gap-4">
               <a
-                href="https://github.com/YOUR_GITHUB_USERNAME"
+                href="https://github.com/sulaimanh7877"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
@@ -134,7 +134,7 @@ const Sidebar = ({ isOpen, onClose, onCreateFolder, folders = [], onFolderClick 
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="https://www.linkedin.com/in/YOUR_LINKEDIN_USERNAME"
+                href="https://www.linkedin.com/in/sulaiman-h"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"

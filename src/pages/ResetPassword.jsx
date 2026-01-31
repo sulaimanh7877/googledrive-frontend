@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { resetPassword, getResetPasswordInfo } from '../api/auth.api';
 import { toast } from 'react-toastify';
@@ -7,8 +7,11 @@ import { Lock } from 'lucide-react';
 const ResetPassword = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingToken, setIsCheckingToken] = useState(true);
+  const [isTokenValid, setIsTokenValid] = useState(false);
   const navigate = useNavigate();
 
   const passwordRules = {
@@ -19,39 +22,55 @@ const ResetPassword = () => {
   };
 
   const passwordValid = Object.values(passwordRules).every(Boolean);
+  const passwordsMatch = password === confirmPassword;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    if (!passwordValid.test(password)) {
+    if (!passwordValid) {
       toast.error('Password must be at least 8 characters and include uppercase, lowercase, and a number');
-      setIsLoading(false);
       return;
     }
 
+    if (!passwordsMatch) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      await resetPassword(token, password);
-      toast.success('Password has been reset successfully!');
+      await resetPassword(token, password, confirmPassword);
+      toast.success('Password updated successfully. Please log in again.');
       navigate('/login');
     } catch (error) {
-      toast.error('Failed to reset password. The link may have expired.');
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.errors?.[0]?.msg ||
+        'Reset failed. Please request a new password reset link.';
+
+      toast.error(message);
+      navigate('/login');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     (async () => {
       try {
         const { data } = await getResetPasswordInfo(token);
         setEmail(data.email);
-      } catch {
-        toast.error('Invalid or expired reset link');
+        setIsTokenValid(true);
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.message || 'Your reset link is invalid or has expired. Please request a new one.'
+        );
         navigate('/login');
+      } finally {
+        setIsCheckingToken(false);
       }
     })();
-  }, []);
+  }, [token, navigate]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-4 relative overflow-hidden">
@@ -82,7 +101,20 @@ const ResetPassword = () => {
             </ul>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" aria-disabled={!isTokenValid || isCheckingToken}>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Confirm Password</label>
+              <input 
+                type="password" 
+                required 
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                disabled={!isTokenValid || isCheckingToken}
+              />
+            </div>
+
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">New Password</label>
               <input 
@@ -97,7 +129,7 @@ const ResetPassword = () => {
 
             <button 
               type="submit" 
-              disabled={isLoading || !passwordValid}
+              disabled={isLoading || isCheckingToken || !isTokenValid || !passwordValid || !passwordsMatch}
               className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Resetting...' : 'Reset Password'}

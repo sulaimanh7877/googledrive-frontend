@@ -5,4 +5,4 @@ export const register = (data) => api.post('/auth/register', data);
 export const activate = (token) => api.get(`/auth/activate/${token}`);
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email });
 export const getResetPasswordInfo = (token) => api.get(`/auth/reset-password/${token}/info`);
-export const resetPassword = (token, newPassword) => api.post(`/auth/reset-password/${token}`, { newPassword });
+export const resetPassword = (token, newPassword, confirmPassword) => api.post(`/auth/reset-password/${token}`, { newPassword, confirmPassword });

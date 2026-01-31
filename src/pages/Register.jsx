@@ -9,6 +9,15 @@ const Register = () => {
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
+  const passwordRules = {
+    length: formData.password.length >= 8,
+    uppercase: /[A-Z]/.test(formData.password),
+    lowercase: /[a-z]/.test(formData.password),
+    number: /\d/.test(formData.password)
+  };
+
+  const isPasswordValid = Object.values(passwordRules).every(Boolean);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -79,7 +88,7 @@ const Register = () => {
               />
             </div>
             
-            <div className="space-y-1.5 relative">
+            <div className="space-y-3 relative">
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
               <input 
                 type="password"
@@ -89,12 +98,19 @@ const Register = () => {
                 value={formData.password} 
                 onChange={e => setFormData({...formData, password: e.target.value})} 
               />
+
+              <ul className="text-xs space-y-1 mt-2">
+                <li className={passwordRules.length ? 'text-green-600' : 'text-gray-400'}>• At least 8 characters</li>
+                <li className={passwordRules.uppercase ? 'text-green-600' : 'text-gray-400'}>• One uppercase letter</li>
+                <li className={passwordRules.lowercase ? 'text-green-600' : 'text-gray-400'}>• One lowercase letter</li>
+                <li className={passwordRules.number ? 'text-green-600' : 'text-gray-400'}>• One number</li>
+              </ul>
             </div>
 
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+              disabled={isLoading || !isPasswordValid}
+              className="w-full py-3.5 px-4 mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

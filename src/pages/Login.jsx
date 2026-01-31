@@ -13,6 +13,9 @@ const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isFormValid = isEmailValid && password.length > 0;
+
   // Instant redirect if already authenticated
   if (isAuthenticated) {
     navigate('/dashboard', { replace: true });
@@ -72,8 +75,8 @@ const Login = () => {
             </div>
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isLoading || !isFormValid}
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>

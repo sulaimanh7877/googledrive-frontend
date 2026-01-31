@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Menu, LogOut, ChevronDown } from 'lucide-react';
+import PWAInstallButton from './PWAInstallButton';
 import useAuth from '../hooks/useAuth';
 
 const Header = ({ onMenuClick, onSearch }) => {
@@ -46,6 +47,7 @@ const Header = ({ onMenuClick, onSearch }) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 ml-4">
+        <PWAInstallButton />
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}

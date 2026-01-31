@@ -231,39 +231,52 @@ const Dashboard = () => {
           
           {/* Breadcrumb & Actions */}
           <div className="flex items-center justify-between mb-8 sticky top-0 bg-gray-50 z-10 py-2">
-             <div className="flex items-center gap-2 text-xl text-gray-800 font-bold">
-               <button 
-                 onClick={() => handleBreadcrumb(0)} 
-                 className="hover:text-blue-600 transition-colors px-2 py-1 -ml-2 rounded-lg hover:bg-gray-200"
-               >
-                  My Drive
-               </button>
-               {breadcrumbPath.slice(1).map((crumb, index) => (
-                 <div key={crumb.id || 'root'} className="flex items-center gap-2">
-                   <ChevronRight className="w-5 h-5 text-gray-400" />
-                   <button
-                     onClick={() => handleBreadcrumb(index + 1)}
-                     className="hover:text-blue-600 transition-colors"
-                   >
-                     {crumb.name}
-                   </button>
-                 </div>
-               ))}
-             </div>
-             <div className="flex items-center gap-2 bg-gray-200 p-1 rounded-lg">
-               <button 
-                onClick={() => setViewMode('list')} 
+            <div className="flex items-center gap-1 text-sm font-semibold text-gray-700 max-w-full overflow-hidden">
+              <button
+                onClick={() => handleBreadcrumb(0)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-200 hover:text-blue-600 transition-colors whitespace-nowrap"
+              >
+                <Home className="w-4 h-4" />
+                <span>My Drive</span>
+              </button>
+
+              {breadcrumbPath.length > 3 && (
+                <span className="px-2 text-gray-400">…</span>
+              )}
+
+              {breadcrumbPath
+                .slice(Math.max(1, breadcrumbPath.length - 2))
+                .map((crumb, index, arr) => {
+                  const actualIndex = breadcrumbPath.length - arr.length + index;
+                  return (
+                    <div key={crumb.id || actualIndex} className="flex items-center gap-1 max-w-[200px]">
+                      <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <button
+                        onClick={() => handleBreadcrumb(actualIndex)}
+                        title={crumb.name}
+                        className="truncate max-w-[160px] px-2 py-1 rounded-md hover:bg-gray-200 hover:text-blue-600 transition-colors"
+                      >
+                        {crumb.name}
+                      </button>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div className="flex items-center gap-1 bg-gray-200 p-1 rounded-lg flex-shrink-0">
+              <button
+                onClick={() => setViewMode('list')}
                 className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-white shadow' : 'text-gray-600'}`}
-               >
-                 <List className="w-4 h-4" />
-               </button>
-               <button 
-                onClick={() => setViewMode('grid')} 
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-white shadow' : 'text-gray-600'}`}
-               >
-                 <LayoutGrid className="w-4 h-4" />
-               </button>
-             </div>
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Upload Area */}

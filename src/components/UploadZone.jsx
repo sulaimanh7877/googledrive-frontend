@@ -33,12 +33,21 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
     if (validFiles.length === 0) return;
 
     const uploadFile = async (file) => {
-      const relativePath = file.path || file.webkitRelativePath || file.name;
-      const parts = relativePath.split('/');
-      const fileName = parts.pop();
+      const rawPath = file.path || file.webkitRelativePath || '';
 
-      const hasFolderStructure = relativePath.includes('/');
-      const relativeFolderPath = hasFolderStructure ? parts.join('/') : null;
+      // Only treat as folder upload if browser provides a real relative path
+      const isFolderUpload = rawPath && rawPath.includes('/') && rawPath !== '.' && rawPath !== './';
+
+      let parts = [];
+      if (isFolderUpload) {
+        parts = rawPath
+          .split('/')
+          .filter(p => p && p !== '.' && p !== '..');
+      }
+
+      const fileName = parts.length > 0 ? parts.pop() : file.name;
+
+      const relativeFolderPath = parts.length > 0 ? parts.join('/') : null;
 
       const targetFolderId = relativeFolderPath
         ? (await resolveFolderPath(relativeFolderPath, folderId)).data.folderId

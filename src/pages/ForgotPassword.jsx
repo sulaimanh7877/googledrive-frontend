@@ -8,6 +8,8 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -56,8 +58,8 @@ const ForgotPassword = () => {
 
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold shadow-lg shadow-gray-400/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isLoading || !isEmailValid}
+              className="w-full py-3.5 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-semibold shadow-lg shadow-gray-400/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Sending Link...' : 'Send Reset Link'}
             </button>

@@ -11,7 +11,14 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const passwordValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  const passwordRules = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password)
+  };
+
+  const passwordValid = Object.values(passwordRules).every(Boolean);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,9 +72,15 @@ const ResetPassword = () => {
           <p className="text-center text-gray-500 mb-4 text-sm">
             Reset password for <strong>{email}</strong>
           </p>
-          <p className="text-center text-gray-400 mb-8 text-xs">
-            Password must be at least 8 characters and include uppercase, lowercase, and a number.
-          </p>
+          <div className="mb-6">
+            <p className="text-center text-gray-400 mb-3 text-xs">Password must contain:</p>
+            <ul className="text-xs space-y-1 text-center">
+              <li className={passwordRules.length ? 'text-green-600' : 'text-gray-400'}>• At least 8 characters</li>
+              <li className={passwordRules.uppercase ? 'text-green-600' : 'text-gray-400'}>• One uppercase letter</li>
+              <li className={passwordRules.lowercase ? 'text-green-600' : 'text-gray-400'}>• One lowercase letter</li>
+              <li className={passwordRules.number ? 'text-green-600' : 'text-gray-400'}>• One number</li>
+            </ul>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-1.5">
@@ -84,8 +97,8 @@ const ResetPassword = () => {
 
             <button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isLoading || !passwordValid}
+              className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Resetting...' : 'Reset Password'}
             </button>

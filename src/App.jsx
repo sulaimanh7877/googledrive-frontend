@@ -12,9 +12,13 @@ import Dashboard from './pages/Dashboard';
 import Activate from './pages/Activate';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Landing from './pages/Landing';
 
 function AuthRedirect() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return null;
+
   return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />;
 }
 
@@ -23,6 +27,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/" element={<AuthRedirect />} />
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />

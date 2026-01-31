@@ -10,6 +10,9 @@ import { formatBytes } from '../utils/format.util';
 const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
   const onDrop = useCallback(async (acceptedFiles) => {
 
+    // Cache resolved folder paths to prevent duplicate folder creation
+    const folderPathCache = new Map();
+
     // Client-side Validation
     const validFiles = [];
     let batchSize = 0;
@@ -49,9 +52,15 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
 
       const relativeFolderPath = parts.length > 0 ? parts.join('/') : null;
 
-      const targetFolderId = relativeFolderPath
-        ? (await resolveFolderPath(relativeFolderPath, folderId)).data.folderId
-        : folderId || null;
+      let targetFolderId = folderId || null;
+
+      if (relativeFolderPath) {
+        if (!folderPathCache.has(relativeFolderPath)) {
+          const res = await resolveFolderPath(relativeFolderPath, folderId);
+          folderPathCache.set(relativeFolderPath, res.data.folderId);
+        }
+        targetFolderId = folderPathCache.get(relativeFolderPath);
+      }
       try {
         // 1. Get Signed URL
         const response = await getUploadUrl(fileName, file.type, file.size, targetFolderId);
@@ -83,24 +92,35 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
       }
     };
 
-    toast.info(`Uploading ${validFiles.length} file(s)...`);
+    const totalFiles = validFiles.length;
+    let uploadedCount = 0;
 
-    const results = await Promise.allSettled(
-      validFiles.map(uploadFile)
-    );
+    const toastId = toast.loading(`Uploading files... 0 / ${totalFiles}`);
 
     const successes = [];
     const failures = [];
 
-    results.forEach((result, index) => {
-      const file = validFiles[index];
-      if (result.status === 'fulfilled') {
+    for (const file of validFiles) {
+      try {
+        await uploadFile(file);
+        uploadedCount++;
         successes.push(file.name);
-      } else {
-        const reason = result.reason?.response?.data?.message || result.reason?.message || 'Upload failed';
+        toast.update(toastId, {
+          render: `Uploading files... ${uploadedCount} / ${totalFiles}`,
+          isLoading: true
+        });
+      } catch (error) {
+        uploadedCount++;
+        const reason = error?.response?.data?.message || error?.message || 'Upload failed';
         failures.push({ name: file.name, reason });
+        toast.update(toastId, {
+          render: `Uploading files... ${uploadedCount} / ${totalFiles}`,
+          isLoading: true
+        });
       }
-    });
+    }
+
+    toast.dismiss(toastId);
 
     if (successes.length > 0) {
       toast.success(`${successes.length} file(s) uploaded successfully`);

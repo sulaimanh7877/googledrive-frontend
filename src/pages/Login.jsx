@@ -10,8 +10,13 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Instant redirect if already authenticated
+  if (isAuthenticated) {
+    navigate('/dashboard', { replace: true });
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

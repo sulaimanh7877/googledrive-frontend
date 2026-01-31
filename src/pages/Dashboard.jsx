@@ -11,6 +11,7 @@ import FolderCard from '../components/FolderCard';
 import FileList from '../components/FileList';
 import FileGrid from '../components/FileGrid';
 import UploadZone from '../components/UploadZone';
+import DeleteModal from '../components/DeleteModal';
 import { getStorageUsage } from '../api/file.api';
 
 const Dashboard = () => {
@@ -26,9 +27,15 @@ const Dashboard = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [viewMode, setViewMode] = useState('list');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const filteredFolders = contents.folders.filter(folder =>
+    folder.name.toLowerCase().includes(searchQuery)
+  );
   
-  const MAX_STORAGE = ((Number(import.meta.env.VITE_STORAGE_LIMIT_MB) || 250) * 1024 * 1024);
-  const remainingSpace = Math.max(0, MAX_STORAGE - totalUsage);
+  const remainingSpace = Math.max(0, storageLimit - totalUsage);
 
   const loadStorage = async () => {
     try {
@@ -128,13 +135,16 @@ const Dashboard = () => {
       );
       setNewFolderName('');
       loadContent(currentFolder?.id);
+      loadRootFolders();
     } catch (error) {
       console.error(error);
     }
   };
 
   const handleDeleteFile = async (file) => {
-    if (!window.confirm('Delete this file?')) return;
+    setDeleteTarget({ type: 'file', item: file });
+    setDeleteModalOpen(true);
+    return;
     
     // Optimistic Update
     const previousFiles = contents.files;
@@ -150,12 +160,15 @@ const Dashboard = () => {
     } catch (err) {
       // Revert on failure
       setContents(prev => ({ ...prev, files: previousFiles }));
-      toast.error(`Failed to delete "${file.name}"`);
+      const message = err?.response?.data?.message || `Failed to delete "${file.name}"`;
+      toast.error(message);
     }
   };
 
   const handleDeleteFolder = async (folder) => {
-    if (!window.confirm('Delete this folder?')) return;
+    setDeleteTarget({ type: 'folder', item: folder });
+    setDeleteModalOpen(true);
+    return;
 
     // Optimistic Update
     const previousFolders = contents.folders;
@@ -171,7 +184,8 @@ const Dashboard = () => {
     } catch (err) {
       // Revert on failure
       setContents(prev => ({ ...prev, folders: previousFolders }));
-      toast.error(`Failed to delete "${folder.name}"`);
+      const message = err?.response?.data?.message || `Failed to delete "${folder.name}"`;
+      toast.error(message);
     }
   };
 
@@ -260,16 +274,17 @@ const Dashboard = () => {
                onUploadSuccess={() => {
                  loadContent(currentFolder?.id);
                  loadStorage();
+                 loadRootFolders();
                }} 
              />
           </div>
 
           {/* Quick Access (Folders) */}
-          {contents.folders.filter(f => f.name.toLowerCase().includes(searchQuery)).length > 0 && (
+          {filteredFolders.length > 0 && (
             <div className="mb-10">
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Quick Access</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {contents.folders.filter(folder => folder.name.toLowerCase().includes(searchQuery)).map(folder => (
+                {filteredFolders.map(folder => (
                   <FolderCard 
                     key={folder.id} 
                     folder={folder} 
@@ -302,6 +317,57 @@ const Dashboard = () => {
       </div>
 
       {/* Create Folder Modal */}
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        title={deleteTarget?.type === 'folder' ? 'Delete folder?' : 'Delete file?'}
+        description={deleteTarget?.type === 'folder'
+          ? 'This will permanently delete the folder and all its contents.'
+          : 'This file will be permanently deleted.'}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setDeleteTarget(null);
+        }}
+        onConfirm={async () => {
+          if (deleteTarget?.type === 'file') {
+            const file = deleteTarget.item;
+            const previousFiles = contents.files;
+            setContents(prev => ({
+              ...prev,
+              files: prev.files.filter(f => f.id !== file.id)
+            }));
+            try {
+              await deleteFile(file.id);
+              toast.success(`File "${file.name}" deleted permanently`);
+              loadStorage();
+            } catch (err) {
+              setContents(prev => ({ ...prev, files: previousFiles }));
+              toast.error(`Failed to delete "${file.name}"`);
+            }
+          }
+
+          if (deleteTarget?.type === 'folder') {
+            const folder = deleteTarget.item;
+            const previousFolders = contents.folders;
+            setContents(prev => ({
+              ...prev,
+              folders: prev.folders.filter(f => f.id !== folder.id)
+            }));
+            try {
+              await deleteFolder(folder.id);
+              toast.success(`Folder "${folder.name}" and its contents deleted`);
+              loadStorage();
+              loadRootFolders();
+            } catch (err) {
+              setContents(prev => ({ ...prev, folders: previousFolders }));
+              toast.error(`Failed to delete "${folder.name}"`);
+            }
+          }
+
+          setDeleteModalOpen(false);
+          setDeleteTarget(null);
+        }}
+      />
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl">
@@ -312,6 +378,12 @@ const Dashboard = () => {
               placeholder="Untitled Folder"
               value={newFolderName}
               onChange={e => setNewFolderName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleCreateFolder();
+                }
+              }}
             />
             <div className="flex justify-end gap-3">
               <button 

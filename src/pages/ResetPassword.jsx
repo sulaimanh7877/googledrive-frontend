@@ -16,6 +16,13 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (!passwordValid.test(password)) {
+      toast.error('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await resetPassword(token, password);
       toast.success('Password has been reset successfully!');

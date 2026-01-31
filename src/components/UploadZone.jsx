@@ -1,12 +1,15 @@
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { getUploadUrl, uploadToS3, saveFileMetadata } from '../api/file.api';
+import { resolveFolderPath } from '../api/folder.api';
+
 import { toast } from 'react-toastify';
 import { UploadCloud } from 'lucide-react';
 import { formatBytes } from '../utils/format.util';
 
 const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
   const onDrop = useCallback(async (acceptedFiles) => {
+
     // Client-side Validation
     const validFiles = [];
     let batchSize = 0;
@@ -30,9 +33,19 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
     if (validFiles.length === 0) return;
 
     const uploadFile = async (file) => {
+      const relativePath = file.path || file.webkitRelativePath || file.name;
+      const parts = relativePath.split('/');
+      const fileName = parts.pop();
+
+      const hasFolderStructure = relativePath.includes('/');
+      const relativeFolderPath = hasFolderStructure ? parts.join('/') : null;
+
+      const targetFolderId = relativeFolderPath
+        ? (await resolveFolderPath(relativeFolderPath, folderId)).data.folderId
+        : folderId || null;
       try {
         // 1. Get Signed URL
-        const response = await getUploadUrl(file.name, file.type, file.size);
+        const response = await getUploadUrl(fileName, file.type, file.size, targetFolderId);
         const { uploadUrl, signedUrl, url, s3Key, key } = response.data || {};
         const targetUrl = uploadUrl || signedUrl || url;
         const targetKey = s3Key || key;
@@ -45,11 +58,11 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
 
         // 3. Save Metadata
         const metaData = {
-          name: file.name,
+          name: fileName,
           size: file.size,
           mimeType: fileType,
           s3Key: targetKey,
-          folderId: folderId || null
+          folderId: targetFolderId || null
         };
         
         await saveFileMetadata(metaData);
@@ -61,19 +74,37 @@ const UploadZone = ({ folderId, onUploadSuccess, remainingSpace }) => {
       }
     };
 
-    await toast.promise(
-      Promise.all(validFiles.map(uploadFile)),
-      {
-        pending: `Uploading ${validFiles.length} file(s)...`,
-        success: 'Files uploaded successfully',
-        error: 'One or more uploads failed'
-      }
+    toast.info(`Uploading ${validFiles.length} file(s)...`);
+
+    const results = await Promise.allSettled(
+      validFiles.map(uploadFile)
     );
+
+    const successes = [];
+    const failures = [];
+
+    results.forEach((result, index) => {
+      const file = validFiles[index];
+      if (result.status === 'fulfilled') {
+        successes.push(file.name);
+      } else {
+        const reason = result.reason?.response?.data?.message || result.reason?.message || 'Upload failed';
+        failures.push({ name: file.name, reason });
+      }
+    });
+
+    if (successes.length > 0) {
+      toast.success(`${successes.length} file(s) uploaded successfully`);
+    }
+
+    failures.forEach(failure => {
+      toast.error(`${failure.name}: ${failure.reason}`);
+    });
 
     if (onUploadSuccess) onUploadSuccess();
   }, [folderId, onUploadSuccess, remainingSpace]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, webkitdirectory: true });
 
   return (
     <div 

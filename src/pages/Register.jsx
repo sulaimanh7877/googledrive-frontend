@@ -78,7 +78,7 @@ const Register = () => {
               />
             </div>
             
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative">
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
               <input 
                 type="password"

@@ -6,9 +6,14 @@ const FolderCard = ({ folder, onClick, onDelete }) => {
       onClick={() => onClick(folder)}
       className="bg-white rounded-lg shadow p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
     >
-      <div className="flex items-center space-x-3">
-        <Folder className="w-6 h-6 text-yellow-500 fill-current" />
-        <span className="font-medium text-gray-700 truncate max-w-[150px]">{folder.name}</span>
+      <div className="flex flex-col">
+        <div className="flex items-center space-x-3">
+          <Folder className="w-6 h-6 text-yellow-500 fill-current" />
+          <span className="font-medium text-gray-700 truncate max-w-[150px]">{folder.name}</span>
+        </div>
+        <span className="text-xs text-gray-400 mt-1">
+          Created {new Date(folder.createdAt).toLocaleDateString()}
+        </span>
       </div>
       <button 
         onClick={(e) => { e.stopPropagation(); onDelete(folder); }}

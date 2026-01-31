@@ -53,7 +53,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
               <input 
                 type="password" 
